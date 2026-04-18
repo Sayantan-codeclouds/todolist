@@ -132,6 +132,44 @@
       font-style: italic;
     }
 
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(92vw, 420px);
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 1rem;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal h2 {
+      margin: 0 0 0.55rem;
+      font-size: 1.1rem;
+    }
+
+    .modal p {
+      margin: 0 0 0.9rem;
+      color: #374151;
+    }
+
+    .modal button {
+      background: #2563eb;
+      color: #fff;
+    }
+
     @media (max-width: 560px) {
       .task-item {
         grid-template-columns: 1fr;
@@ -156,6 +194,14 @@
     <p id="emptyState" class="empty">No tasks yet. Add one above.</p>
   </main>
 
+  <div id="emptyTaskModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
+    <div class="modal">
+      <h2 id="modalTitle">Task required</h2>
+      <p id="modalMessage">Please enter a task before clicking “Add Task”.</p>
+      <button id="closeModalBtn" type="button">OK</button>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = 'todo-list-v2';
 
@@ -163,6 +209,8 @@
     const addBtn = document.getElementById('addBtn');
     const taskList = document.getElementById('taskList');
     const emptyState = document.getElementById('emptyState');
+    const emptyTaskModal = document.getElementById('emptyTaskModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
 
     let tasks = loadTasks();
     let editingIndex = null;
@@ -186,12 +234,25 @@
 
     function addTask() {
       const value = taskInput.value.trim();
-      if (!value) return;
+      if (!value) {
+        showEmptyTaskError();
+        return;
+      }
 
       tasks.push(value);
       taskInput.value = '';
       saveTasks();
       renderTasks();
+      taskInput.focus();
+    }
+
+    function showEmptyTaskError() {
+      emptyTaskModal.classList.add('open');
+      closeModalBtn.focus();
+    }
+
+    function hideEmptyTaskError() {
+      emptyTaskModal.classList.remove('open');
       taskInput.focus();
     }
 
@@ -298,6 +359,15 @@
     addBtn.addEventListener('click', addTask);
     taskInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') addTask();
+    });
+    closeModalBtn.addEventListener('click', hideEmptyTaskError);
+    emptyTaskModal.addEventListener('click', (event) => {
+      if (event.target === emptyTaskModal) hideEmptyTaskError();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && emptyTaskModal.classList.contains('open')) {
+        hideEmptyTaskError();
+      }
     });
 
     renderTasks();
