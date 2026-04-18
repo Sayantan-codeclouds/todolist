@@ -211,6 +211,8 @@
     const emptyState = document.getElementById('emptyState');
     const emptyTaskModal = document.getElementById('emptyTaskModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
 
     let tasks = loadTasks();
     let editingIndex = null;
@@ -235,7 +237,7 @@
     function addTask() {
       const value = taskInput.value.trim();
       if (!value) {
-        showEmptyTaskError();
+        showTaskError('Task required', 'Please enter a task before clicking “Add Task”.');
         return;
       }
 
@@ -246,12 +248,14 @@
       taskInput.focus();
     }
 
-    function showEmptyTaskError() {
+    function showTaskError(title, message) {
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
       emptyTaskModal.classList.add('open');
       closeModalBtn.focus();
     }
 
-    function hideEmptyTaskError() {
+    function hideTaskError() {
       emptyTaskModal.classList.remove('open');
       taskInput.focus();
     }
@@ -268,7 +272,10 @@
 
     function saveEdit(index, value) {
       const cleaned = value.trim();
-      if (!cleaned) return;
+      if (!cleaned) {
+        showTaskError('Task required', 'Please enter a task before clicking “Save”.');
+        return;
+      }
 
       tasks[index] = cleaned;
       editingIndex = null;
@@ -360,13 +367,13 @@
     taskInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') addTask();
     });
-    closeModalBtn.addEventListener('click', hideEmptyTaskError);
+    closeModalBtn.addEventListener('click', hideTaskError);
     emptyTaskModal.addEventListener('click', (event) => {
-      if (event.target === emptyTaskModal) hideEmptyTaskError();
+      if (event.target === emptyTaskModal) hideTaskError();
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && emptyTaskModal.classList.contains('open')) {
-        hideEmptyTaskError();
+        hideTaskError();
       }
     });
 
