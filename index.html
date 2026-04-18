@@ -26,16 +26,32 @@
 
     .app {
       width: min(92vw, 760px);
-      background: #fff;
-      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border-radius: 18px;
       padding: 1.25rem;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 12px 24px rgba(17, 24, 39, 0.08);
+      border: 1px solid #dbeafe;
+      box-shadow: 0 16px 32px rgba(17, 24, 39, 0.12);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
     }
 
     h1 {
-      margin: 0 0 1rem;
-      font-size: 1.5rem;
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin: 0.2rem 0 0;
+      color: #4b5563;
+      font-size: 0.94rem;
     }
 
     .input-row {
@@ -71,6 +87,15 @@
       background: #1d4ed8;
     }
 
+    .export-btn {
+      background: #0f766e;
+      color: #fff;
+    }
+
+    .export-btn:hover {
+      background: #0d9488;
+    }
+
     .task-list {
       list-style: none;
       padding: 0;
@@ -84,10 +109,11 @@
       grid-template-columns: 1fr auto;
       gap: 0.55rem;
       align-items: center;
-      border: 1px solid #e5e7eb;
+      border: 1px solid #dbeafe;
       border-radius: 12px;
       padding: 0.65rem;
-      background: #f9fafb;
+      background: #ffffff;
+      box-shadow: 0 6px 14px rgba(59, 130, 246, 0.08);
     }
 
     .task-content {
@@ -178,12 +204,22 @@
       .actions {
         justify-content: flex-start;
       }
+
+      .header-row {
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
 <body>
   <main class="app">
-    <h1>Todo List</h1>
+    <div class="header-row">
+      <div>
+        <h1>Todo List</h1>
+        <p class="subtitle">Plan your day, then export your tasks anytime.</p>
+      </div>
+      <button id="exportBtn" class="export-btn" type="button">Export CSV</button>
+    </div>
 
     <div class="input-row">
       <input id="taskInput" type="text" placeholder="Add a task..." aria-label="Task input" />
@@ -209,6 +245,7 @@
     const addBtn = document.getElementById('addBtn');
     const taskList = document.getElementById('taskList');
     const emptyState = document.getElementById('emptyState');
+    const exportBtn = document.getElementById('exportBtn');
     const emptyTaskModal = document.getElementById('emptyTaskModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const modalTitle = document.getElementById('modalTitle');
@@ -258,6 +295,30 @@
     function hideTaskError() {
       emptyTaskModal.classList.remove('open');
       taskInput.focus();
+    }
+
+    function toCsvValue(value) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+
+    function exportTasksToCsv() {
+      if (!tasks.length) {
+        showTaskError('Nothing to export', 'Add at least one task before exporting CSV.');
+        return;
+      }
+
+      const rows = [['Task'], ...tasks.map((task) => [task])];
+      const csv = rows.map((row) => row.map(toCsvValue).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `todo-tasks-${today}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     }
 
     function startEdit(index) {
@@ -364,6 +425,7 @@
     }
 
     addBtn.addEventListener('click', addTask);
+    exportBtn.addEventListener('click', exportTasksToCsv);
     taskInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') addTask();
     });
